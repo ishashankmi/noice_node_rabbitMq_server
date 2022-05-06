@@ -8,6 +8,7 @@ console.clear();
 const ProceedQ = async () => {
   try {
     const connnection = await amqplib.connect("amqp://localhost");
+    console.log("[~] RabbitMQ Connected\r\n");
     const channel = await connnection.createChannel();
 
     await channel.assertQueue("follow_user", { durable: true });
