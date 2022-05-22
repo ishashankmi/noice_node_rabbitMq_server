@@ -2,6 +2,7 @@ import amqplib from "amqplib";
 import { follow_user, unfollow_user } from "./user/flw_unflw.js";
 import { post_reaction, remove_post_reaction } from "./user/user_reaction.js";
 import signup from "./user/signup.js";
+import displayEdit from "./user/displayEdit.js";
 
 console.clear();
 
@@ -10,6 +11,8 @@ const ProceedQ = async () => {
     const connnection = await amqplib.connect("amqp://localhost");
     console.log("[~] RabbitMQ Connected\r\n");
     const channel = await connnection.createChannel();
+
+    // --------------------- FOLLOW QUEUE ------------------------
 
     await channel.assertQueue("follow_user", { durable: true });
     channel.prefetch(1);
@@ -51,7 +54,7 @@ const ProceedQ = async () => {
       }
     );
 
-    //Unfollow User Queue
+    // --------------------- UNFOLLOW QUEUE ------------------------
 
     await channel.assertQueue("unfollow_user", { durable: true });
     channel.consume(
@@ -92,8 +95,10 @@ const ProceedQ = async () => {
       }
     );
 
-    // USER REACTION
+    // --------------------- USER REACTION ------------------------
 
+    // channel.deleteQueue("post_upvote");
+    // channel.deleteQueue("post_downvote");
     await channel.assertQueue("post_upvote", { durable: false });
 
     channel.consume(
@@ -178,8 +183,7 @@ const ProceedQ = async () => {
       }
     );
 
-    // SIGNUP
-
+    // --------------------- SIGNUP ------------------------
     const signup_queue = "signup_queue";
 
     await channel.assertQueue(signup_queue, { durable: true });
@@ -208,6 +212,40 @@ const ProceedQ = async () => {
               correlationId: coId,
             });
           });
+      },
+      {
+        noAck: true,
+      }
+    );
+
+    // --------------------- PROFILE DISPLAY EDIT ------------------------
+
+    const editProfileDisplay = "editProfileDisplay";
+    await channel.assertQueue("editProfileDisplay", { durable: false });
+    channel.consume(
+      "editProfileDisplay",
+      (msg) => {
+        if (msg.content) {
+          const replyData = msg.properties;
+          const replyTo = replyData.replyTo;
+          const coId = replyData.correlationId;
+
+          const { userId, username, bio, location, link } = JSON.parse(
+            msg.content.toString()
+          );
+
+          displayEdit(userId, username, bio, location, JSON.stringify(link))
+            .then((e) => {
+              channel.sendToQueue(replyTo, Buffer.from("1".toString()), {
+                correlationId: coId,
+              });
+            })
+            .catch((e) => {
+              channel.sendToQueue(replyTo, Buffer.from("0".toString()), {
+                correlationId: coId,
+              });
+            });
+        }
       },
       {
         noAck: true,
