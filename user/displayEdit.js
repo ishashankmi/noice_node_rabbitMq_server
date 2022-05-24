@@ -18,8 +18,6 @@ const displayEdit = async (userId, username, bio, location, link) => {
       );
     } catch (e) {
       reject();
-    } finally {
-      conn.release();
     }
   });
 };
