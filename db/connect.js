@@ -7,6 +7,7 @@ const conn = createPool({
   user: "root",
   password: "#Hellow90",
   database: "noicefeed",
+  charset: "utf8mb4",
 });
 
 export default conn;

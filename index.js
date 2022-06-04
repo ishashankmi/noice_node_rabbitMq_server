@@ -236,7 +236,6 @@ const ProceedQ = async () => {
 
           displayEdit(userId, username, bio, location, JSON.stringify(link))
             .then((e) => {
-              console.log(e);
               channel.sendToQueue(replyTo, Buffer.from("1".toString()), {
                 correlationId: coId,
               });
