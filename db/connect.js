@@ -5,7 +5,7 @@ const conn = createPool({
   connectionLimit: 10,
   host: "localhost",
   user: "root",
-  password: "#Hellow90",
+  password: "toor",
   database: "noicefeed",
   charset: "utf8mb4",
 });
